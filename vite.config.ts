@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
   } else {
     return {
       ssr: {
-        external: ['react', 'react-dom']
+        external: ['react', 'react-dom', '@simplewebauthn/server']
       },
       plugins: [
         pages(),

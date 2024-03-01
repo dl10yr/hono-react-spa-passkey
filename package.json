@@ -16,6 +16,7 @@
     "@cloudflare/workers-types": "^4.20240208.0",
     "@hono/vite-cloudflare-pages": "^0.2.4",
     "@hono/vite-dev-server": "^0.8.0",
+    "@simplewebauthn/types": "^9.0.1",
     "@types/react": "^18.2.60",
     "@types/react-dom": "^18.2.19",
     "vite": "^5.0.12",
