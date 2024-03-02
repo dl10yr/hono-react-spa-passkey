@@ -3,11 +3,12 @@ import { userStore } from '../lib/db'
 import { GenerateAuthenticationOptionsOpts, VerifiedAuthenticationResponse, VerifyAuthenticationResponseOpts, VerifyRegistrationResponseOpts, generateAuthenticationOptions, generateRegistrationOptions, verifyAuthenticationResponse, verifyRegistrationResponse } from '@simplewebauthn/server'
 import { RP_ID, RP_NAME, ORIGIN } from '../lib/const'
 import { isoBase64URL, isoUint8Array } from '@simplewebauthn/server/helpers'
-import { AuthenticatorDevice, PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/types'
+import { AuthenticatorDevice, PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/types'
 
 export const passkey = new Hono()
 
 export type StartRegistrationResponse = PublicKeyCredentialCreationOptionsJSON & { message: string }
+export type StartAuthenticateResponse = PublicKeyCredentialRequestOptionsJSON & { message: string }
 
 passkey.post('/start-registration', async (c) => {
   const body = await c.req.json()
@@ -60,7 +61,7 @@ passkey.post('/complete-registration', async (c) => {
   const body = await c.req.json()
   const userId = body['userId']
 
-  const user = userStore.getUserById(userId)
+  let user = userStore.getUserById(userId)
   const expectedChallenge = user?.challenge
 
   if (!user || !expectedChallenge) {
@@ -116,8 +117,10 @@ passkey.post('/complete-registration', async (c) => {
     })
   }
 
+  user = userStore.getUserById(userId)
+
   userStore.setUser({
-    ...user,
+    ...user!,
     challenge: undefined
   })
 
@@ -127,7 +130,7 @@ passkey.post('/complete-registration', async (c) => {
 })
 
 
-passkey.get('/start-authenticate', async (c) => {
+passkey.post('/start-authenticate', async (c) => {
   const body = await c.req.json()
   const userId = body['userId']
   const user = userStore.getUserById(userId)
@@ -160,7 +163,7 @@ passkey.get('/start-authenticate', async (c) => {
   })
 })
 
-passkey.post('/complete-registration', async (c) => {
+passkey.post('/complete-authenticate', async (c) => {
   const body = await c.req.json()
   const userId = body['userId']
   const user = userStore.getUserById(userId)
@@ -192,7 +195,7 @@ passkey.post('/complete-registration', async (c) => {
     const opts: VerifyAuthenticationResponseOpts = {
       response: body,
       expectedChallenge: expectedChallenge ?? '',
-      expectedOrigin: origin,
+      expectedOrigin: ORIGIN,
       expectedRPID: RP_ID,
       authenticator: dbAuthenticator,
       requireUserVerification: false
@@ -212,7 +215,6 @@ passkey.post('/complete-registration', async (c) => {
   }
 
   dbAuthenticator.counter = authenticationInfo.newCounter
-
 
   userStore.setUser({
     ...user,
