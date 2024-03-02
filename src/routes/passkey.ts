@@ -1,11 +1,13 @@
 import { Hono } from 'hono'
 import { userStore } from '../lib/db'
 import { GenerateAuthenticationOptionsOpts, VerifiedAuthenticationResponse, VerifyAuthenticationResponseOpts, VerifyRegistrationResponseOpts, generateAuthenticationOptions, generateRegistrationOptions, verifyAuthenticationResponse, verifyRegistrationResponse } from '@simplewebauthn/server'
-import { RP_ID, RP_NAME } from '../lib/const'
+import { RP_ID, RP_NAME, ORIGIN } from '../lib/const'
 import { isoBase64URL, isoUint8Array } from '@simplewebauthn/server/helpers'
-import { AuthenticatorDevice } from '@simplewebauthn/types'
+import { AuthenticatorDevice, PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/types'
 
 export const passkey = new Hono()
+
+export type StartRegistrationResponse = PublicKeyCredentialCreationOptionsJSON & { message: string }
 
 passkey.post('/start-registration', async (c) => {
   const body = await c.req.json()
@@ -41,7 +43,14 @@ passkey.post('/start-registration', async (c) => {
     },
   })
 
-  return c.json({
+  userStore.setUser({
+    ...user,
+    challenge: credentialCreationOptions.challenge
+  })
+
+  console.log(credentialCreationOptions.challenge)
+
+  return c.json<StartRegistrationResponse>({
     message: 'registration start is ok',
     ...credentialCreationOptions,
   })
@@ -62,7 +71,7 @@ passkey.post('/complete-registration', async (c) => {
   const opts: VerifyRegistrationResponseOpts = {
     response: body,
     expectedChallenge: expectedChallenge,
-    expectedOrigin: origin,
+    expectedOrigin: ORIGIN,
     expectedRPID: RP_ID,
     requireUserVerification: false,
   };
@@ -72,6 +81,7 @@ passkey.post('/complete-registration', async (c) => {
   try {
     verification = await verifyRegistrationResponse(opts)
   } catch (error) {
+    console.log(error)
     c.status(400)
     return c.json({
       error: 'Can not validate response signature.',
