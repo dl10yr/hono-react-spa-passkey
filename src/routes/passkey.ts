@@ -1,14 +1,16 @@
 import { Hono } from 'hono'
-import { userStore } from '../lib/db'
+
 import { GenerateAuthenticationOptionsOpts, VerifiedAuthenticationResponse, VerifyAuthenticationResponseOpts, VerifyRegistrationResponseOpts, generateAuthenticationOptions, generateRegistrationOptions, verifyAuthenticationResponse, verifyRegistrationResponse } from '@simplewebauthn/server'
-import { RP_ID, RP_NAME, ORIGIN } from '../lib/const'
 import { isoBase64URL, isoUint8Array } from '@simplewebauthn/server/helpers'
 import { AuthenticatorDevice, PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/types'
 
-export const passkey = new Hono()
+import { RP_ID, RP_NAME, ORIGIN } from '../lib/const'
+import { userStore } from '../lib/db'
 
 export type StartRegistrationResponse = PublicKeyCredentialCreationOptionsJSON & { message: string }
 export type StartAuthenticateResponse = PublicKeyCredentialRequestOptionsJSON & { message: string }
+
+export const passkey = new Hono()
 
 passkey.post('/start-registration', async (c) => {
   const body = await c.req.json()

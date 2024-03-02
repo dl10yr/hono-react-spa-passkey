@@ -4,12 +4,6 @@ import { passkey } from './routes/passkey'
 
 const app = new Hono()
 
-app.get('/api/clock', (c) => {
-  return c.json({
-    time: new Date().toLocaleTimeString()
-  })
-})
-
 app.route('/api/passkey', passkey)
 
 app.get('*', (c) => {
