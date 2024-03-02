@@ -51,8 +51,6 @@ passkey.post('/start-registration', async (c) => {
     challenge: credentialCreationOptions.challenge
   })
 
-  console.log(credentialCreationOptions.challenge)
-
   return c.json<StartRegistrationResponse>({
     message: 'registration start is ok',
     ...credentialCreationOptions,
