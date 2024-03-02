@@ -14,7 +14,7 @@ export const passkey = new Hono()
 
 passkey.post('/start-registration', async (c) => {
   const body = await c.req.json()
-  const userId = body['userId'] // 本来は、userIdはBearerトークンから取得するのが普通？
+  const userId = body['userId'] // 本来は、userIdはBearerトークンから取得するのが普通？ いや、サインアップのときはbodyで良いのか？
 
   if (!userId) {
     c.status(400)
